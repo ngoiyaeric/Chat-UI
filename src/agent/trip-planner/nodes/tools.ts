@@ -1,5 +1,6 @@
 import { TripPlannerState, TripPlannerUpdate } from "../types";
 import { ChatOpenAI } from "@langchain/openai";
+import { Bedrock } from "@langchain/bedrock";
 import { typedUi } from "@langchain/langgraph-sdk/react-ui/server";
 import type ComponentMap from "../../../agent-uis/index";
 import { z } from "zod";
@@ -37,9 +38,13 @@ export async function callTools(
 
   const ui = typedUi<typeof ComponentMap>(config);
 
-  const llm = new ChatOpenAI({ model: "gpt-4o", temperature: 0 }).bindTools(
-    ACCOMMODATIONS_TOOLS,
-  );
+  const llm = process.env.OPENAI_API_KEY
+    ? new ChatOpenAI({ model: "gpt-4o", temperature: 0 }).bindTools(
+        ACCOMMODATIONS_TOOLS,
+      )
+    : new Bedrock({ model: "amazon-bedrock-model" }).bindTools(
+        ACCOMMODATIONS_TOOLS,
+      );
 
   const response = await llm.invoke([
     {

@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import { ChatOpenAI } from "@langchain/openai";
+import { Bedrock } from "@langchain/bedrock";
 import { TripDetails, TripPlannerState, TripPlannerUpdate } from "../types";
 import { z } from "zod";
 import { ToolMessage } from "@langchain/langgraph-sdk";
@@ -68,13 +69,21 @@ export async function extraction(
       ),
   });
 
-  const model = new ChatOpenAI({ model: "gpt-4o", temperature: 0 }).bindTools([
-    {
-      name: "extract",
-      description: "A tool to extract information from a user's request.",
-      schema: schema,
-    },
-  ]);
+  const model = process.env.OPENAI_API_KEY
+    ? new ChatOpenAI({ model: "gpt-4o", temperature: 0 }).bindTools([
+        {
+          name: "extract",
+          description: "A tool to extract information from a user's request.",
+          schema: schema,
+        },
+      ])
+    : new Bedrock({ model: "amazon-bedrock-model" }).bindTools([
+        {
+          name: "extract",
+          description: "A tool to extract information from a user's request.",
+          schema: schema,
+        },
+      ]);
 
   const prompt = `You're an AI assistant for planning trips. The user has requested information about a trip they want to go on.
 Before you can help them, you need to extract the following information from their request:

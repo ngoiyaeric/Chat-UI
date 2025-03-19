@@ -1,6 +1,7 @@
 import { SupervisorState, SupervisorUpdate } from "../types";
 import { ALL_TOOL_DESCRIPTIONS } from "../index";
 import { ChatOpenAI } from "@langchain/openai";
+import { Bedrock } from "@langchain/bedrock";
 
 export async function generalInput(
   state: SupervisorState,
@@ -13,7 +14,10 @@ If the last message is a tool result, describe what the action was, congratulate
 
 Otherwise, just answer as normal.`;
 
-  const llm = new ChatOpenAI({ model: "gpt-4o-mini", temperature: 0 });
+  const llm = process.env.OPENAI_API_KEY
+    ? new ChatOpenAI({ model: "gpt-4o-mini", temperature: 0 })
+    : new Bedrock({ model: "amazon-bedrock-model" });
+
   const response = await llm.invoke([
     {
       role: "system",

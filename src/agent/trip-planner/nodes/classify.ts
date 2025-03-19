@@ -1,4 +1,5 @@
 import { ChatOpenAI } from "@langchain/openai";
+import { Bedrock } from "@langchain/bedrock";
 import { TripPlannerState, TripPlannerUpdate } from "../types";
 import { z } from "zod";
 import { formatMessages } from "@/agent/utils/format-messages";
@@ -19,19 +20,33 @@ export async function classify(
       ),
   });
 
-  const model = new ChatOpenAI({ model: "gpt-4o", temperature: 0 }).bindTools(
-    [
-      {
-        name: "classify",
-        description:
-          "A tool to classify whether or not the trip details are still relevant to the user's request.",
-        schema,
-      },
-    ],
-    {
-      tool_choice: "classify",
-    },
-  );
+  const model = process.env.OPENAI_API_KEY
+    ? new ChatOpenAI({ model: "gpt-4o", temperature: 0 }).bindTools(
+        [
+          {
+            name: "classify",
+            description:
+              "A tool to classify whether or not the trip details are still relevant to the user's request.",
+            schema,
+          },
+        ],
+        {
+          tool_choice: "classify",
+        },
+      )
+    : new Bedrock({ model: "amazon-bedrock-model" }).bindTools(
+        [
+          {
+            name: "classify",
+            description:
+              "A tool to classify whether or not the trip details are still relevant to the user's request.",
+            schema,
+          },
+        ],
+        {
+          tool_choice: "classify",
+        },
+      );
 
   const prompt = `You're an AI assistant for planning trips. The user has already specified the following details for their trip:
 - location - ${state.tripDetails.location}

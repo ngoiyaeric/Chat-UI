@@ -5,6 +5,7 @@ import {
   StateGraph,
 } from "@langchain/langgraph";
 import { ChatOpenAI } from "@langchain/openai";
+import { Bedrock } from "@langchain/bedrock";
 
 const ChatAgentAnnotation = Annotation.Root({
   messages: MessagesAnnotation.spec["messages"],
@@ -12,9 +13,13 @@ const ChatAgentAnnotation = Annotation.Root({
 
 const graph = new StateGraph(ChatAgentAnnotation)
   .addNode("chat", async (state) => {
-    const model = new ChatOpenAI({
-      model: "gpt-4o-mini",
-    });
+    const model = process.env.OPENAI_API_KEY
+      ? new ChatOpenAI({
+          model: "gpt-4o-mini",
+        })
+      : new Bedrock({
+          model: "amazon-bedrock-model",
+        });
 
     const response = await model.invoke([
       { role: "system", content: "You are a helpful assistant." },

@@ -1,4 +1,5 @@
 import { ChatAnthropic } from "@langchain/anthropic";
+import { Bedrock } from "@langchain/bedrock";
 import { Annotation, END, START, StateGraph } from "@langchain/langgraph";
 import { GenerativeUIAnnotation } from "../types";
 import { z } from "zod";
@@ -30,13 +31,20 @@ const workflow = new StateGraph(PizzaOrdererAnnotation)
           ),
       })
       .describe("The schema for finding a pizza shop for the user");
-    const model = new ChatAnthropic({
-      model: "claude-3-5-sonnet-latest",
-      temperature: 0,
-    }).withStructuredOutput(findShopSchema, {
-      name: "find_pizza_shop",
-      includeRaw: true,
-    });
+    const model = process.env.OPENAI_API_KEY
+      ? new ChatAnthropic({
+          model: "claude-3-5-sonnet-latest",
+          temperature: 0,
+        }).withStructuredOutput(findShopSchema, {
+          name: "find_pizza_shop",
+          includeRaw: true,
+        })
+      : new Bedrock({
+          model: "amazon-bedrock-model",
+        }).withStructuredOutput(findShopSchema, {
+          name: "find_pizza_shop",
+          includeRaw: true,
+        });
 
     const response = await model.invoke([
       {
@@ -76,13 +84,20 @@ const workflow = new StateGraph(PizzaOrdererAnnotation)
         order: z.string().describe("The full pizza order for the user"),
       })
       .describe("The schema for ordering a pizza for the user");
-    const model = new ChatAnthropic({
-      model: "claude-3-5-sonnet-latest",
-      temperature: 0,
-    }).withStructuredOutput(placeOrderSchema, {
-      name: "place_pizza_order",
-      includeRaw: true,
-    });
+    const model = process.env.OPENAI_API_KEY
+      ? new ChatAnthropic({
+          model: "claude-3-5-sonnet-latest",
+          temperature: 0,
+        }).withStructuredOutput(placeOrderSchema, {
+          name: "place_pizza_order",
+          includeRaw: true,
+        })
+      : new Bedrock({
+          model: "amazon-bedrock-model",
+        }).withStructuredOutput(placeOrderSchema, {
+          name: "place_pizza_order",
+          includeRaw: true,
+        });
 
     const response = await model.invoke([
       {

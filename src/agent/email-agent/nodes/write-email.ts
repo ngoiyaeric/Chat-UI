@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { EmailAgentState, EmailAgentUpdate } from "../types";
 import { ChatOpenAI } from "@langchain/openai";
+import { Bedrock } from "@langchain/bedrock";
 import { formatMessages } from "@/agent/utils/format-messages";
 
 const SEND_EMAIL_PROMPT = `You're an AI email assistant, tasked with writing an email for the user.
@@ -25,16 +26,26 @@ const sendEmailSchema = z.object({
 export async function writeEmail(
   state: EmailAgentState,
 ): Promise<EmailAgentUpdate> {
-  const model = new ChatOpenAI({
-    model: "gpt-4o",
-    temperature: 0,
-  }).bindTools([
-    {
-      name: "write_email",
-      description: "Write an email based on the conversation history",
-      schema: sendEmailSchema,
-    },
-  ]);
+  const model = process.env.OPENAI_API_KEY
+    ? new ChatOpenAI({
+        model: "gpt-4o",
+        temperature: 0,
+      }).bindTools([
+        {
+          name: "write_email",
+          description: "Write an email based on the conversation history",
+          schema: sendEmailSchema,
+        },
+      ])
+    : new Bedrock({
+        model: "amazon-bedrock-model",
+      }).bindTools([
+        {
+          name: "write_email",
+          description: "Write an email based on the conversation history",
+          schema: sendEmailSchema,
+        },
+      ]);
 
   const prompt = SEND_EMAIL_PROMPT.replace(
     "{CONVERSATION}",

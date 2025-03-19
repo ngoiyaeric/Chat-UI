@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { EmailAgentState, EmailAgentUpdate } from "../types";
 import { ChatOpenAI } from "@langchain/openai";
+import { Bedrock } from "@langchain/bedrock";
 
 const REWRITE_EMAIL_PROMPT = `You're an AI email assistant, tasked with rewriting an email for the user.
 Here is the current state of the email for the user:
@@ -44,21 +45,36 @@ export async function rewriteEmail(
     throw new Error("Can not rewrite email if email is undefined.");
   }
 
-  const model = new ChatOpenAI({
-    model: "gpt-4o",
-    temperature: 0,
-  }).bindTools(
-    [
-      {
-        name: "write_email",
-        description: "Write an email based on the conversation history",
-        schema: sendEmailSchema,
-      },
-    ],
-    {
-      tool_choice: "write_email",
-    },
-  );
+  const model = process.env.OPENAI_API_KEY
+    ? new ChatOpenAI({
+        model: "gpt-4o",
+        temperature: 0,
+      }).bindTools(
+        [
+          {
+            name: "write_email",
+            description: "Write an email based on the conversation history",
+            schema: sendEmailSchema,
+          },
+        ],
+        {
+          tool_choice: "write_email",
+        },
+      )
+    : new Bedrock({
+        model: "amazon-bedrock-model",
+      }).bindTools(
+        [
+          {
+            name: "write_email",
+            description: "Write an email based on the conversation history",
+            schema: sendEmailSchema,
+          },
+        ],
+        {
+          tool_choice: "write_email",
+        },
+      );
 
   const prompt = REWRITE_EMAIL_PROMPT.replace("{SUBJECT}", state.email.subject)
     .replace("{BODY}", state.email.body)

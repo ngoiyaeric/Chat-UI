@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import { Bedrock } from "@langchain/bedrock";
 import { ALL_TOOL_DESCRIPTIONS } from "../index";
 import { SupervisorState, SupervisorUpdate } from "../types";
 import { formatMessages } from "@/agent/utils/format-messages";
@@ -28,12 +29,18 @@ ${ALL_TOOL_DESCRIPTIONS}
     schema: routerSchema,
   };
 
-  const llm = new ChatGoogleGenerativeAI({
-    model: "gemini-2.0-flash",
-    temperature: 0,
-  })
-    .bindTools([routerTool], { tool_choice: "router" })
-    .withConfig({ tags: ["langsmith:nostream"] });
+  const llm = process.env.GOOGLE_API_KEY
+    ? new ChatGoogleGenerativeAI({
+        model: "gemini-2.0-flash",
+        temperature: 0,
+      })
+        .bindTools([routerTool], { tool_choice: "router" })
+        .withConfig({ tags: ["langsmith:nostream"] })
+    : new Bedrock({
+        model: "amazon-bedrock-model",
+      })
+        .bindTools([routerTool], { tool_choice: "router" })
+        .withConfig({ tags: ["langsmith:nostream"] });
 
   const prompt = `You're a highly helpful AI assistant, tasked with routing the user's query to the appropriate tool.
 You should analyze the user's input, and choose the appropriate tool to use.`;
