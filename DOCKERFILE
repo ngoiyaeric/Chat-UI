@@ -1,0 +1,32 @@
+# Use official Node.js 18 slim image as the base (matches typical Node.js versions for modern projects)
+FROM node:18-slim
+
+# Install pnpm globally
+RUN npm install -g pnpm
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files first (optimization for caching)
+COPY package.json pnpm-lock.yaml ./
+
+# Install dependencies with pnpm
+RUN pnpm install --frozen-lockfile
+
+# Copy the rest of the application code
+COPY . .
+
+# Expose the port the LangGraph server runs on (2024 as per README)
+EXPOSE 2024
+
+# Define environment variables (default placeholders, overridden by .env or runtime config)
+ENV OPENAI_API_KEY=""
+ENV GOOGLE_API_KEY=""
+ENV LANGSMITH_PROJECT="default"
+ENV LANGSMITH_API_KEY=""
+ENV LANGSMITH_TRACING_V2="true"
+ENV ANTHROPIC_API_KEY=""
+ENV FINANCIAL_DATASETS_API_KEY=""
+
+# Start the LangGraph server
+CMD ["pnpm", "agent"]
