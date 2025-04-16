@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import { ChatXai } from "@langchain/xai";
 import { ALL_TOOL_DESCRIPTIONS } from "../index";
 import { SupervisorState, SupervisorUpdate } from "../types";
 import { formatMessages } from "@/agent/utils/format-messages";
@@ -28,8 +28,8 @@ ${ALL_TOOL_DESCRIPTIONS}
     schema: routerSchema,
   };
 
-  const llm = new ChatGoogleGenerativeAI({
-    model: "gemini-2.0-flash",
+  const llm = new ChatXai({
+    model: "grok-3-mini",
     temperature: 0,
   })
     .bindTools([routerTool], { tool_choice: "router" })

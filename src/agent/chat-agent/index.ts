@@ -4,7 +4,7 @@ import {
   START,
   StateGraph,
 } from "@langchain/langgraph";
-import { ChatOpenAI } from "@langchain/openai";
+import { ChatXai } from "@langchain/xai";
 
 const ChatAgentAnnotation = Annotation.Root({
   messages: MessagesAnnotation.spec["messages"],
@@ -12,8 +12,8 @@ const ChatAgentAnnotation = Annotation.Root({
 
 const graph = new StateGraph(ChatAgentAnnotation)
   .addNode("chat", async (state) => {
-    const model = new ChatOpenAI({
-      model: "gpt-4o-mini",
+    const model = new ChatXai({
+      model: "grok-3-mini",
     });
 
     const response = await model.invoke([
